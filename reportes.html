@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Choices.js CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <!-- Estilos personalizados -->
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        /* Barra lateral */
+        .sidebar {
+            background-color: #2c3e50;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding: 30px 20px;
+            width: 220px;
+            transition: all 0.3s;
+        }
+        .sidebar h3 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .sidebar a i {
+            margin-right: 10px;
+        }
+        /* Contenido principal */
+        .content {
+            margin-left: 220px;
+            padding: 30px 20px;
+            transition: all 0.3s;
+        }
+        /* Media Queries para Responsividad */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            .content {
+                margin-left: 0;
+                padding: 20px 10px;
+            }
+            /* Mostrar Navbar en dispositivos móviles */
+            .navbar-mobile {
+                display: flex;
+            }
+        }
+        @media (min-width: 769px) {
+            .navbar-mobile {
+                display: none;
+            }
+        }
+        /* Estadísticas clave */
+        .stats-box {
+            border: none;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        .stats-box:hover {
+            transform: translateY(-5px);
+        }
+        .stats-box h4 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        .stats-box p {
+            font-size: 2em;
+            font-weight: bold;
+            color: #3498db;
+            margin: 0;
+        }
+        /* Iconos en estadísticas */
+        .stats-box .icon {
+            font-size: 2.5em;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+        /* Gráficos */
+        .chart-container {
+            margin-top: 30px;
+        }
+        .filter-container {
+            margin-bottom: 30px;
+            padding: 25px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            background-color: #fff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .filter-container h5 {
+            margin-bottom: 25px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        /* Botones de Exportación */
+        .export-buttons {
+            margin-top: 20px;
+            text-align: right;
+        }
+        .export-buttons button {
+            margin-left: 10px;
+        }
+        /* Spinner para carga */
+        .spinner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            display: none; /* Oculto por defecto */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Spinner de carga -->
+    <div class="spinner-overlay" id="spinner">
+        <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+    </div>
+
+    <!-- Barra de Navegación para Dispositivos Móviles -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark d-md-none navbar-mobile">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Zapatillas</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavMobile" 
+                    aria-controls="navbarNavMobile" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavMobile">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html"><i class="bi bi-box-seam"></i> Inventario</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="agregar-producto.html"><i class="bi bi-plus-circle"></i> Agregar Producto</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="ventas.html"><i class="bi bi-cart-fill"></i> Ventas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="reportes.html"><i class="bi bi-bar-chart-line-fill"></i> Reportes</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Barra Lateral para Dispositivos Grandes -->
+    <div class="sidebar d-none d-md-block">
+        <h3 class="text-center mb-4">Zapatillas</h3>
+        <a href="index.html"><i class="bi bi-box-seam"></i> Inventario</a>
+        <a href="agregar-producto.html"><i class="bi bi-plus-circle"></i> Agregar Producto</a>
+        <a href="ventas.html"><i class="bi bi-cart-fill"></i> Ventas</a>
+        <a href="reportes.html" class="active"><i class="bi bi-bar-chart-line-fill"></i> Reportes</a>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="content">
+        <div class="container-fluid">
+            <h2 class="mb-4">Reportes</h2>
+            <p>Aquí puedes visualizar los reportes y estadísticas de ventas.</p>
+
+            <!-- Filtros -->
+            <div class="filter-container">
+                <h5>Filtros</h5>
+                <div class="row g-3">
+                    <!-- Filtro por producto -->
+                    <div class="col-md-4">
+                        <label for="productFilter" class="form-label">Filtrar por Producto</label>
+                        <select id="productFilter" class="form-select" multiple>
+                            <option value="">Todos los productos</option>
+                            <!-- Productos se llenarán dinámicamente -->
+                        </select>
+                        <div class="form-text">Mantén presionada la tecla Ctrl (Windows) o Command (Mac) para seleccionar múltiples opciones.</div>
+                    </div>
+
+                    <!-- Filtro por fecha -->
+                    <div class="col-md-4">
+                        <label for="dateFilter" class="form-label">Filtrar por Fecha</label>
+                        <input type="date" id="dateFilter" class="form-control">
+                    </div>
+
+                    <!-- Filtro por mes -->
+                    <div class="col-md-4">
+                        <label for="monthFilter" class="form-label">Filtrar por Mes</label>
+                        <input type="month" id="monthFilter" class="form-control">
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-12 text-end">
+                        <button id="filterButton" class="btn btn-primary me-2"><i class="bi bi-filter"></i> Filtrar</button>
+                        <button id="clearFiltersButton" class="btn btn-secondary"><i class="bi bi-eraser"></i> Limpiar Filtros</button>
+                    </div>
+                </div>
+
+                <!-- Botones de Exportación -->
+                <div class="export-buttons">
+                    <button id="exportPDF" class="btn btn-danger"><i class="bi bi-file-earmark-pdf-fill"></i> Exportar a PDF</button>
+                    <!-- <button id="exportCSV" class="btn btn-success"><i class="bi bi-file-earmark-spreadsheet-fill"></i> Exportar a CSV</button> -->
+                </div>
+            </div>
+
+            <!-- Estadísticas clave -->
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="stats-box">
+                        <div class="icon">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+                        <h4>Total de Ventas</h4>
+                        <p id="totalSales">Cargando...</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-box">
+                        <div class="icon">
+                            <i class="bi bi-bar-chart-line-fill"></i>
+                        </div>
+                        <h4>Producto Más Vendido</h4>
+                        <p id="bestSellingProduct">Cargando...</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-box">
+                        <div class="icon">
+                            <i class="bi bi-currency-dollar"></i>
+                        </div>
+                        <h4>Total Ingresos</h4>
+                        <p id="totalRevenue">Cargando...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráficos -->
+            <div class="chart-container">
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title text-center">Ventas por Producto</h5>
+                                <canvas id="salesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title text-center">Ventas por Mes</h5>
+                                <canvas id="monthlySalesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+    
+    <!-- Bootstrap Bundle JS (Incluye Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Choices.js JS -->
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Firebase JS SDK (Modular) -->
+    <script type="module">
+        // Importar las funciones necesarias desde la SDK de Firebase versión 11
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, collection, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyASIRckSRbp2DFJZIIgMMAXg4BsBnntWnc",
+            authDomain: "administrarinventario.firebaseapp.com",
+            projectId: "administrarinventario",
+            storageBucket: "administrarinventario.appspot.com",
+            messagingSenderId: "991218574772",
+            appId: "1:991218574772:web:4ba26113a8e6a19128bee1",
+            measurementId: "G-JWW1WQCVHH"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Variables globales para almacenar datos
+        let products = []; // Array para almacenar productos
+        let salesData = []; // Array para almacenar ventas
+        let filteredSales = []; // Array para almacenar ventas filtradas
+        let choicesInstance = null; // Instancia de Choices.js para el filtro de productos
+
+        // Spinner de carga
+        const spinner = document.getElementById('spinner');
+
+        /**
+         * Función para mostrar el spinner de carga
+         */
+        function showSpinner() {
+            spinner.style.display = 'flex';
+        }
+
+        /**
+         * Función para ocultar el spinner de carga
+         */
+        function hideSpinner() {
+            spinner.style.display = 'none';
+        }
+
+        /**
+         * Función para cargar productos desde Firestore y llenar el filtro correspondiente
+         */
+        async function loadProducts() {
+            const productFilter = document.getElementById('productFilter');
+            productFilter.innerHTML = '<option value="">Todos los productos</option>';
+            products = []; // Reiniciar el arreglo para evitar duplicados
+
+            try {
+                // Obtener documentos de la colección "productos"
+                const querySnapshot = await getDocs(collection(db, "productos"));
+                querySnapshot.forEach((docSnap) => {
+                    const product = docSnap.data();
+                    products.push({ id: docSnap.id, ...product });
+
+                    // Crear opciones para el filtro de productos
+                    const option = document.createElement("option");
+                    option.value = docSnap.id;
+                    option.textContent = `${product.marca} - ${product.modelo}`;
+                    productFilter.appendChild(option);
+                });
+
+                // Inicializar Choices.js para el filtro de productos
+                if (!choicesInstance) {
+                    choicesInstance = new Choices(productFilter, {
+                        removeItemButton: true,
+                        searchPlaceholderValue: 'Buscar productos',
+                        placeholder: true,
+                        placeholderValue: 'Todos los productos',
+                        shouldSort: false,
+                        maxItemCount: -1,
+                        noResultsText: 'No se encontraron productos',
+                        itemSelectText: '',
+                    });
+                } else {
+                    // Si ya está inicializado, destruir la instancia anterior y re-inicializar
+                    choicesInstance.destroy();
+                    choicesInstance = new Choices(productFilter, {
+                        removeItemButton: true,
+                        searchPlaceholderValue: 'Buscar productos',
+                        placeholder: true,
+                        placeholderValue: 'Todos los productos',
+                        shouldSort: false,
+                        maxItemCount: -1,
+                        noResultsText: 'No se encontraron productos',
+                        itemSelectText: '',
+                    });
+                }
+            } catch (error) {
+                // Mostrar alerta en caso de error al cargar productos
+                Swal.fire('Error', 'Hubo un problema al cargar los productos.', 'error');
+                console.error("Error al cargar productos:", error);
+            }
+        }
+
+        /**
+         * Función para cargar ventas desde Firestore
+         */
+        async function loadSales() {
+            salesData = []; // Reiniciar el arreglo para evitar duplicados
+
+            try {
+                // Obtener documentos de la colección "ventas"
+                const salesSnapshot = await getDocs(collection(db, "ventas"));
+                salesSnapshot.forEach((docSnap) => {
+                    const sale = docSnap.data();
+                    // Convertir Timestamp a Date si es necesario
+                    const fechaHora = sale.fechaHora instanceof Timestamp ? sale.fechaHora.toDate() : new Date(sale.fechaHora);
+                    salesData.push({
+                        id: docSnap.id,
+                        productId: sale.productId,
+                        producto: sale.producto,
+                        cantidad: sale.cantidad,
+                        fechaHora: fechaHora
+                    });
+                });
+                // Inicialmente, las ventas filtradas son todas las ventas
+                filteredSales = [...salesData];
+                // Actualizar el reporte con los datos cargados
+                updateReport();
+            } catch (error) {
+                // Mostrar alerta en caso de error al cargar ventas
+                Swal.fire('Error', 'Hubo un problema al cargar las ventas.', 'error');
+                console.error("Error al cargar ventas:", error);
+            }
+        }
+
+        /**
+         * Función para actualizar los reportes y estadísticas en la página
+         */
+        function updateReport() {
+            // Mostrar indicador de carga mientras se procesan los datos
+            showSpinner();
+
+            // Calcular total de ventas sumando las cantidades de todas las ventas filtradas
+            const totalSales = filteredSales.reduce((acc, sale) => acc + sale.cantidad, 0);
+
+            // Calcular total de ingresos multiplicando la cantidad vendida por el precio de venta de cada producto
+            let totalRevenue = 0;
+            filteredSales.forEach(sale => {
+                const product = products.find(p => p.id === sale.productId);
+                if (product) {
+                    totalRevenue += sale.cantidad * product.precioVenta;
+                }
+            });
+
+            // Calcular el producto más vendido
+            const productSales = {};
+            filteredSales.forEach(sale => {
+                if (productSales[sale.producto]) {
+                    productSales[sale.producto] += sale.cantidad;
+                } else {
+                    productSales[sale.producto] = sale.cantidad;
+                }
+            });
+
+            let bestSellingProduct = "N/A";
+            let maxSales = 0;
+            for (const [product, sales] of Object.entries(productSales)) {
+                if (sales > maxSales) {
+                    maxSales = sales;
+                    bestSellingProduct = product;
+                }
+            }
+
+            // Actualizar el DOM con las estadísticas calculadas
+            document.getElementById('totalSales').textContent = totalSales;
+            document.getElementById('bestSellingProduct').textContent = bestSellingProduct;
+            document.getElementById('totalRevenue').textContent = `$${totalRevenue.toFixed(2)}`;
+
+            // Actualizar los gráficos con los datos calculados
+            loadSalesChart(productSales);
+            loadMonthlySalesChart();
+
+            // Ocultar el indicador de carga una vez finalizada la actualización
+            hideSpinner();
+        }
+
+        /**
+         * Función para cargar el gráfico de ventas por producto utilizando Chart.js
+         * @param {Object} productSales - Objeto con las ventas por producto
+         */
+        function loadSalesChart(productSales) {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+
+            // Destruir el gráfico existente si ya está creado para evitar superposición
+            if (window.salesChartInstance) {
+                window.salesChartInstance.destroy();
+            }
+
+            const salesLabels = Object.keys(productSales);
+            const salesValues = Object.values(productSales);
+
+            // Crear una nueva instancia de Chart.js
+            window.salesChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: salesLabels,
+                    datasets: [{
+                        label: 'Ventas por Producto',
+                        data: salesValues,
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }, // Ocultar la leyenda
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Ventas: ${context.parsed.y}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision:0 } // Asegurar que los ticks sean enteros
+                        }
+                    }
+                }
+            });
+        }
+
+        /**
+         * Función para cargar el gráfico de ventas por mes utilizando Chart.js
+         */
+        function loadMonthlySalesChart() {
+            const ctx = document.getElementById('monthlySalesChart').getContext('2d');
+
+            // Destruir el gráfico existente si ya está creado para evitar superposición
+            if (window.monthlySalesChartInstance) {
+                window.monthlySalesChartInstance.destroy();
+            }
+
+            // Agrupar ventas por mes
+            const monthlySales = {};
+            filteredSales.forEach(sale => {
+                const month = sale.fechaHora.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+                if (monthlySales[month]) {
+                    monthlySales[month] += sale.cantidad;
+                } else {
+                    monthlySales[month] = sale.cantidad;
+                }
+            });
+
+            // Ordenar los meses cronológicamente
+            const sortedMonths = Object.keys(monthlySales).sort((a, b) => {
+                const dateA = new Date(a);
+                const dateB = new Date(b);
+                return dateA - dateB;
+            });
+
+            const monthlyLabels = sortedMonths;
+            const monthlyValues = sortedMonths.map(label => monthlySales[label]);
+
+            // Crear una nueva instancia de Chart.js para el gráfico de líneas
+            window.monthlySalesChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: monthlyLabels,
+                    datasets: [{
+                        label: 'Ventas por Mes',
+                        data: monthlyValues,
+                        fill: true,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        tension: 0.3,
+                        pointBackgroundColor: 'rgba(255, 99, 132, 1)',
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }, // Ocultar la leyenda
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Ventas: ${context.parsed.y}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision:0 } // Asegurar que los ticks sean enteros
+                        }
+                    }
+                }
+            });
+        }
+
+        /**
+         * Función para aplicar los filtros seleccionados por el usuario
+         */
+        function applyFilters() {
+            const selectedProducts = choicesInstance.getValue(true); // Obtener los IDs seleccionados
+            const specificDate = document.getElementById('dateFilter').value;
+            const specificMonth = document.getElementById('monthFilter').value;
+
+            // Filtrar las ventas según los criterios seleccionados
+            filteredSales = salesData.filter(sale => {
+                let matches = true;
+
+                // Filtrar por productos seleccionados
+                if (selectedProducts.length > 0) {
+                    matches = matches && selectedProducts.includes(sale.productId);
+                }
+
+                // Filtrar por fecha específica
+                if (specificDate) {
+                    const saleDate = sale.fechaHora.toISOString().split('T')[0];
+                    matches = matches && (saleDate === specificDate);
+                }
+
+                // Filtrar por mes
+                if (specificMonth) {
+                    const saleMonth = sale.fechaHora.toISOString().substring(0,7); // Formato YYYY-MM
+                    matches = matches && (saleMonth === specificMonth);
+                }
+
+                return matches;
+            });
+
+            // Actualizar el reporte con las ventas filtradas
+            updateReport();
+        }
+
+        /**
+         * Función para limpiar todos los filtros aplicados
+         */
+        function clearFilters() {
+            // Limpiar selección de productos
+            choicesInstance.setChoiceByValue(''); 
+            
+            // Limpiar campos de fecha y mes
+            document.getElementById('dateFilter').value = "";
+            document.getElementById('monthFilter').value = "";
+            
+            // Restaurar las ventas filtradas a todas las ventas
+            filteredSales = [...salesData];
+            
+            // Actualizar el reporte sin filtros
+            updateReport();
+        }
+
+        /**
+         * Función para exportar el reporte a un archivo PDF
+         */
+        async function exportPDF() {
+            // Mostrar spinner durante la exportación
+            showSpinner();
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'pt', 'a4');
+                let yOffset = 40;
+
+                // Título del reporte
+                doc.setFontSize(22);
+                doc.text("Reporte de Ventas", 40, yOffset);
+                yOffset += 30;
+
+                // Estadísticas clave
+                doc.setFontSize(14);
+                doc.text(`Total de Ventas: ${document.getElementById('totalSales').textContent}`, 40, yOffset);
+                yOffset += 20;
+                doc.text(`Producto Más Vendido: ${document.getElementById('bestSellingProduct').textContent}`, 40, yOffset);
+                yOffset += 20;
+                doc.text(`Total Ingresos: ${document.getElementById('totalRevenue').textContent}`, 40, yOffset);
+                yOffset += 40;
+
+                // Obtener los elementos de los gráficos
+                const salesChart = document.getElementById('salesChart');
+                const monthlySalesChart = document.getElementById('monthlySalesChart');
+
+                /**
+                 * Función para convertir un canvas a imagen en formato URL
+                 * @param {HTMLCanvasElement} canvas - Elemento canvas del gráfico
+                 * @returns {string} URL de la imagen en formato PNG
+                 */
+                function getCanvasImage(canvas) {
+                    return canvas.toDataURL("image/png", 1.0);
+                }
+
+                // Agregar el gráfico de Ventas por Producto al PDF
+                const salesChartImage = getCanvasImage(salesChart);
+                doc.addImage(salesChartImage, 'PNG', 40, yOffset, 500, 300);
+                yOffset += 320;
+
+                // Agregar el gráfico de Ventas por Mes al PDF
+                const monthlySalesChartImage = getCanvasImage(monthlySalesChart);
+                doc.addImage(monthlySalesChartImage, 'PNG', 40, yOffset, 500, 300);
+                yOffset += 320;
+
+                // Descargar el PDF generado
+                await doc.save('reporte_ventas.pdf');
+
+                // Mostrar mensaje de éxito
+                Swal.fire('Éxito', 'El reporte ha sido exportado a PDF correctamente.', 'success');
+            } catch (error) {
+                // Mostrar alerta en caso de error durante la exportación
+                Swal.fire('Error', 'Hubo un problema al exportar el reporte.', 'error');
+                console.error("Error al exportar PDF:", error);
+            } finally {
+                // Ocultar spinner después de la exportación
+                hideSpinner();
+            }
+        }
+
+        /**
+         * Función para inicializar la página cargando productos y ventas
+         */
+        async function init() {
+            showSpinner(); // Mostrar spinner mientras se cargan los datos
+            await loadProducts(); // Cargar productos desde Firestore
+            await loadSales(); // Cargar ventas desde Firestore
+            hideSpinner(); // Ocultar spinner una vez cargados los datos
+        }
+
+        // Asignar eventos a los botones de filtros y exportación
+        document.getElementById('filterButton').addEventListener('click', applyFilters);
+        document.getElementById('clearFiltersButton').addEventListener('click', clearFilters);
+        document.getElementById('exportPDF').addEventListener('click', exportPDF);
+        // document.getElementById('exportCSV').addEventListener('click', exportCSV); // Opcional
+
+        // Inicializar al cargar la página
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+
+</body>
+</html>
