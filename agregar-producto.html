@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregar Producto</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        /* Barra lateral */
+        .sidebar {
+            background-color: #2c3e50;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding: 20px;
+            width: 220px;
+            transition: all 0.3s;
+        }
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 10px;
+            transition: 0.3s;
+        }
+        .sidebar a:hover {
+            color: #3498db;
+        }
+        /* Contenido principal */
+        .content {
+            margin-left: 220px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        /* Media Queries para Responsividad */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            .content {
+                margin-left: 0;
+                padding: 10px;
+            }
+            /* Mostrar Navbar en dispositivos móviles */
+            .navbar-mobile {
+                display: flex;
+            }
+        }
+        @media (min-width: 769px) {
+            .navbar-mobile {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Barra de Navegación para Dispositivos Móviles -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark d-md-none navbar-mobile">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Zapatillas</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavMobile" 
+                    aria-controls="navbarNavMobile" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavMobile">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Inventario</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="agregar-producto.html">Agregar Producto</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="ventas.html">Ventas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="reportes.html">Reportes</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Barra Lateral para Dispositivos Grandes -->
+    <div class="sidebar d-none d-md-block">
+        <h3 class="text-center mb-4">Zapatillas</h3>
+        <a href="index.html">Inventario</a>
+        <a href="agregar-producto.html">Agregar Producto</a>
+        <a href="ventas.html">Ventas</a>
+        <a href="reportes.html">Reportes</a>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="content">
+        <div class="container-fluid">
+            <h2>Agregar Nuevo Producto</h2>
+            <form id="productForm">
+                <div class="mb-3">
+                    <label for="brandInput" class="form-label">Marca</label>
+                    <select id="brandInput" class="form-control" required>
+                        <option value="">Seleccionar Marca</option>
+                        <option value="Adidas">Adidas</option>
+                        <option value="Nike">Nike</option>
+                        <option value="Puma">Puma</option>
+                        <option value="Joma">Joma</option>
+                        <option value="Munich">Munich</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="modelInput" class="form-label">Modelo</label>
+                    <input type="text" id="modelInput" class="form-control" required placeholder="Modelo de la Zapatilla">
+                </div>
+                <div class="mb-3">
+                    <label for="priceInput" class="form-label">Precio de Venta</label>
+                    <input type="number" id="priceInput" class="form-control" required min="0" step="0.01" placeholder="Precio en USD">
+                </div>
+                <div class="mb-3">
+                    <label for="stockInput" class="form-label">Cantidad en Stock</label>
+                    <input type="number" id="stockInput" class="form-control" required min="0" placeholder="Número de unidades">
+                </div>
+                <div class="mb-3">
+                    <label for="imageInput" class="form-label">URL de la Imagen</label>
+                    <input type="url" id="imageInput" class="form-control" placeholder="https://ejemplo.com/imagen.jpg">
+                </div>
+                <button type="submit" class="btn btn-primary">Guardar Producto</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+    <!-- Bootstrap Bundle JS (Incluye Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Firebase JS SDK (Modular) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyASIRckSRbp2DFJZIIgMMAXg4BsBnntWnc",
+            authDomain: "administrarinventario.firebaseapp.com",
+            projectId: "administrarinventario",
+            storageBucket: "administrarinventario.appspot.com",
+            messagingSenderId: "991218574772",
+            appId: "1:991218574772:web:4ba26113a8e6a19128bee1",
+            measurementId: "G-JWW1WQCVHH"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Evento para manejar el formulario de producto
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Recoger los datos del formulario
+            const brand = document.getElementById('brandInput').value;
+            const model = document.getElementById('modelInput').value.trim();
+            const priceVenta = parseFloat(document.getElementById('priceInput').value);
+            const stock = parseInt(document.getElementById('stockInput').value, 10);
+            const imageUrl = document.getElementById('imageInput').value.trim();
+
+            // Verificar que todos los campos sean válidos
+            if (!brand || !model || isNaN(priceVenta) || priceVenta < 0 || isNaN(stock) || stock < 0) {
+                Swal.fire('Error', 'Por favor, completa todos los campos correctamente.', 'error');
+                return;
+            }
+
+            const product = {
+                marca: brand,
+                modelo: model,
+                precioVenta: priceVenta,
+                stock: stock,
+                imageUrl: imageUrl || '',  // La URL de la imagen es opcional
+            };
+
+            try {
+                // Agregar el producto a la colección de Firestore
+                await addDoc(collection(db, "productos"), product);
+                Swal.fire('¡Éxito!', 'Producto agregado correctamente', 'success');
+                // Limpiar el formulario después de guardar
+                document.getElementById('productForm').reset();
+            } catch (error) {
+                Swal.fire('Error', 'Hubo un problema al agregar el producto', 'error');
+                console.error("Error al agregar producto:", error);
+            }
+        });
+    </script>
+
+</body>
+</html>
